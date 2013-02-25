@@ -1,0 +1,6 @@
+# Eclipse Project .gitignore
+.project
+bin/**
+local.properties
+.classpath
+.settings/
