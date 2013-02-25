@@ -131,7 +131,7 @@ public class Piroser extends JFrame {
 	
 	/**
 	 * JPanel for the attributes, methods, sub-classes, associations/aggregations
-	 * @author TruongMacBook
+	 * @author Truong Pham
 	 *
 	 */
 	class SquarePanel extends JPanel {
