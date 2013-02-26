@@ -1,4 +1,4 @@
-package org.umontreal.ift3913.piroser;
+package org.umontreal.ift3913.piroser.tests;
 
 import static org.junit.Assert.*;
 import java.io.*;
@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.umontreal.ift3913.piroser.Lexer;
 
 /**
  * Testing the Lexer class
@@ -19,13 +20,15 @@ public class LexerTest {
 
 	@Before
 	public void setUp() {
-		file = new File("test/file.txt");
+		file = new File("tests/file.txt");
 		
 		// Expected tokens
 		expected_tokens = new ArrayList<String>();
 		expected_tokens.add("Bonjour");
 		expected_tokens.add(",");
 		expected_tokens.add("ceci");
+		expected_tokens.add("(");
+		expected_tokens.add(")");
 		expected_tokens.add("est");
 		expected_tokens.add(";");
 		expected_tokens.add("un");
