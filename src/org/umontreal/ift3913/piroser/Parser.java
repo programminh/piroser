@@ -51,16 +51,16 @@ public class Parser {
 	 */
 	private void start() throws InvalidUMLException {
 		// Throw error if the diagram does not start with MODEL
-		if(tokens.get(current_index) != "MODEL") throw new InvalidUMLException("UML Diagram must start with `MODEL`");
+		if(!tokens.get(current_index).equals("MODEL")) throw new InvalidUMLException("UML Diagram must start with `MODEL`");
 		
 		// Read the next token.
 		read_token();
 		
 		// Throw error if the diagram constains only Model
-		if(current_token == END) throw new InvalidUMLException("UML Diagram must have a MODEL name");
+		if(this.current_token == END) throw new InvalidUMLException("UML Diagram must have a MODEL name");
 		
 		// Create new Model
-		model = new Model(current_token);
+		model = new Model(this.current_token);
 		
 		// Parse the declaration
 		parse_declarations();
@@ -100,21 +100,22 @@ public class Parser {
 		read_token();
 		
 		// End the parsing when there is no more token
-		if(current_token == END) return; 
+		if(this.current_token.equals(END)) return; 
 		
-		if(current_token == "CLASS") {
+		if(this.current_token.equals("CLASS")) {
 			parse_class();
 		}
-		else if(current_token == "RELATION") {
+		else if(this.current_token.equals("RELATION")) {
 			parse_association();
 		}
-		else if(current_token == "AGGREGATION") {
+		else if(this.current_token.equals("AGGREGATION")) {
 			parse_aggregation();
 		}
-		else if(current_token == "GENERALIZATION") {
+		else if(this.current_token.equals("GENERALIZATION")) {
 			parse_generalization();
 		}
 		else {
+			System.out.println(this.current_token);
 			throw new InvalidUMLException("Invalid declaration");
 		}
 	}
@@ -128,20 +129,20 @@ public class Parser {
 	private void parse_class() throws InvalidUMLException {
 		read_token();
 		
-		if(current_token == END) throw new InvalidUMLException("Missing CLASS IDENTIFIER");
-		if(! valid_identifier(current_token)) throw new InvalidUMLException("Invalid CLASS IDENTIFIER");
+		if(! valid_identifier(this.current_token)) throw new InvalidUMLException("Invalid CLASS IDENTIFIER");
 		
 		// Create a new CLASS
-		Classe classe = new Classe(current_token);
+		Classe classe = new Classe(this.current_token);
 		
 		// Parsing ATTRIBUTES
 		read_token();
-		if(current_token != "ATTRIBUTES") throw new InvalidUMLException("Missing ATTRIBUTES in CLASS");
+		
+		if(! this.current_token.equals("ATTRIBUTES")) throw new InvalidUMLException("Missing ATTRIBUTES in CLASS");
 		classe = parse_attributes(classe);
 		
 		// Parsing OPERATIONS
 		read_token();
-		if(current_token != "OPERATIONS") throw new InvalidUMLException("Missing OPERATIONS in CLASS");
+		if(! this.current_token.equals("OPERATIONS")) throw new InvalidUMLException("Missing OPERATIONS in CLASS");
 		classe = parse_operations(classe);
 
 		// Add the class to the model
@@ -168,26 +169,26 @@ public class Parser {
 		
 		read_token();
 		
-		if(valid_identifier(current_token) && ! classe.get_attributes().isEmpty()) {
+		if(valid_identifier(this.current_token) && ! classe.get_attributes().isEmpty()) {
 			// Throw an exception if the current token is a valid identifier and the operations array is not empty.
 			// It means that we are missing a comma.
 			throw new InvalidUMLException("Missing `,` between multiple ATTRIBUTES");
 		}
 		
 		// Read the next token if it is a comma.
-		if(current_token.equals(",")) read_token();
+		if(this.current_token.equals(",")) read_token();
 
 		// Validate the identifier
-		if (! valid_identifier(current_token)) throw new InvalidUMLException("Invalid ATTRIBUTES IDENTIFIER");
+		if (! valid_identifier(this.current_token)) throw new InvalidUMLException("Invalid ATTRIBUTES IDENTIFIER");
 		// Set the name of the attribute
-		name = current_token;
+		name = this.current_token;
 	
 		read_token();
-		if (!current_token.equals(":")) throw new InvalidUMLException("Expecting `:` after ATTRIBUTE name");
+		if (!this.current_token.equals(":")) throw new InvalidUMLException("Expecting `:` after ATTRIBUTE name");
 		
 		read_token();
-		if(! valid_identifier(current_token)) throw new InvalidUMLException("Invalid TYPE IDENTIFIER");
-		type = current_token;
+		if(! valid_identifier(this.current_token)) throw new InvalidUMLException("Invalid TYPE IDENTIFIER");
+		type = this.current_token;
 		
 		// Create attribute
 		attribute = new Attribute(name, type);
@@ -212,24 +213,24 @@ public class Parser {
 	
 		read_token();	
 		// Terminate the operations parsing when there is a semicolon;
-		if(current_token.equals(";")) {
+		if(this.current_token.equals(";")) {
 			return classe;
 		}
-		else if(valid_identifier(current_token) && !classe.get_operations().isEmpty()) {
+		else if(valid_identifier(this.current_token) && !classe.get_operations().isEmpty()) {
 			// Throw an exception if the current token is a valid identifier and the operations array is not empty.
 			// It means that we are missing a comma.
 			throw new InvalidUMLException("Missing `,` between multiple OPERATIONS");
 		}
-		else if(current_token.equals(",")) {
+		else if(this.current_token.equals(",")) {
 			// Read the comma
 			read_token();
 		}
 		
-		if(! valid_identifier(current_token)) throw new InvalidUMLException("Invalid OPERATIONS IDENTIFIER");
-		name = current_token;
+		if(! valid_identifier(this.current_token)) throw new InvalidUMLException("Invalid OPERATIONS IDENTIFIER");
+		name = this.current_token;
 		
 		read_token();
-		if(! current_token.equals("(")) throw new InvalidUMLException("Expecting `(`");
+		if(! this.current_token.equals("(")) throw new InvalidUMLException("Expecting `(`");
 		
 		// If the parenthesis is not closed right after the opened one, we need to parse the arguments
 		if(! peek_token().equals(")")) {
@@ -245,13 +246,13 @@ public class Parser {
 		// Read the colon
 		read_token();
 		
-		if(! current_token.equals(":")) throw new InvalidUMLException("Expecting `:`");
+		if(! this.current_token.equals(":")) throw new InvalidUMLException("Expecting `:`");
 		
 		
 		// Validate the type
 		read_token();
-		if(! valid_identifier(current_token)) throw new InvalidUMLException("Invalid OPERATION type IDENTIFIER");
-		type = current_token;
+		if(! valid_identifier(this.current_token)) throw new InvalidUMLException("Invalid OPERATION type IDENTIFIER");
+		type = this.current_token;
 		
 		
 		
@@ -277,15 +278,15 @@ public class Parser {
 		// Each argument must be in this format: "name : type"
 		while(true) {
 			read_token();
-			if(! valid_identifier(current_token)) throw new InvalidUMLException("Invalid ARGUMENT name IDENTIFIER");
-			name = current_token;
+			if(! valid_identifier(this.current_token)) throw new InvalidUMLException("Invalid ARGUMENT name IDENTIFIER");
+			name = this.current_token;
 			
 			read_token();
-			if(! current_token.equals(":")) throw new InvalidUMLException("Expecting `:`");
+			if(! this.current_token.equals(":")) throw new InvalidUMLException("Expecting `:`");
 			
 			read_token();
-			if(! valid_identifier(current_token)) throw new InvalidUMLException("Invalid ARGUMENT type IDENTIFIER");
-			type = current_token;
+			if(! valid_identifier(this.current_token)) throw new InvalidUMLException("Invalid ARGUMENT type IDENTIFIER");
+			type = this.current_token;
 			
 			argument = new Argument(name, type);
 			arguments.add(argument);
@@ -300,7 +301,7 @@ public class Parser {
 			}
 			else {
 				// Else throw an error
-				throw new InvalidUMLException("Invalid ARGUMENTS");
+				throw new InvalidUMLException("Missing `,` between multiple ARGUMENTS");
 			}
 		}
 		
@@ -308,18 +309,170 @@ public class Parser {
 	}
 	
 	/**
-	 * Association parser
+	 * Association parser.
+	 * Association syntax:
+	 * "RELATION" IDENTIFIER "ROLES" role, role; 
+	 * @throws InvalidUMLException 
 	 */
-	private void parse_association() {
+	private void parse_association() throws InvalidUMLException {
+		String relation_name, role_name, role_multiplicity;
+		Role first_role, second_role;
+		Association association;
+
+		read_token();
+		if(! valid_identifier(this.current_token)) throw new InvalidUMLException("Invalid ASSOCIATION IDENTIFIER");
+		relation_name = this.current_token;
 		
+		read_token();
+		if(! this.current_token.equals("ROLES")) throw new InvalidUMLException("Expecting `ROLES` after ASSOCIATION IDENTIFIER");
+		
+		// Create the first role.
+		first_role = parse_role();
+		
+		// Check for comma
+		read_token();
+		if(! this.current_token.equals(",")) throw new InvalidUMLException("Missing `,` between ROLES");
+		
+		// Create second role
+		second_role = parse_role();
+		
+		// Check for closing semicolon
+		read_token();
+		if(! this.current_token.equals(";")) throw new InvalidUMLException("Expecting closing `;` after ASSOCIATION");
+		
+		association = new Association(relation_name, first_role, second_role);
+		model.add_association(association);
+		
+		parse_declarations();
 	}
 	
-	private void parse_aggregation() {
+	/**
+	 * Role parser.
+	 * Role syntax is always:
+	 * "CLASS" IDENTIFIER MULTIPLICITY
+	 * @return
+	 * @throws InvalidUMLException 
+	 */
+	public Role parse_role() throws InvalidUMLException {
+		String name, multiplicity;
 		
+		// Check for CLASS keyword
+		read_token();
+		if(! this.current_token.equals("CLASS")) throw new InvalidUMLException("Expecting `CLASS` before ROLE IDENTIFIER");
+		
+		// Validate IDENTIFIER
+		read_token();
+		if(! valid_identifier(this.current_token)) throw new InvalidUMLException("Invalid ROLE IDENTIFIER");
+		name = this.current_token;
+		
+		// Validate MULTIPLICITY
+		read_token();
+		if(! Role.multiplicity_is_valid(this.current_token)) throw new InvalidUMLException("Invalid MULTIPLICITY");
+		multiplicity = this.current_token;		
+		
+		return new Role(name, multiplicity);
 	}
 	
-	private void parse_generalization() {
+	/**
+	 * Aggregation parser.
+	 * Aggregation syntax: 
+	 * "AGGREGATION" "CONTAINER" role "PARTS" roles;
+	 * @throws InvalidUMLException
+	 */
+	private void parse_aggregation() throws InvalidUMLException {
+		Aggregation aggregation;
+		Role container, part;
+		ArrayList<Role> parts = new ArrayList<Role>();
 		
+		read_token();
+		if(! this.current_token.equals("CONTAINER")) throw new InvalidUMLException("Expecting `CONTAINER` after `AGGREGATION`");
+		
+		// Create container
+		container = parse_role();
+		
+		read_token();
+		if(! this.current_token.equals("PARTS")) throw new InvalidUMLException("Expecting `PARTS` after container");
+		
+		// Loop to construct the parts
+		while(true) {
+			part = parse_role();
+			parts.add(part);	
+			
+			read_token();
+			if(current_token.equals(";")) {
+				// Read the closing semicolon and break from the loop.
+				break;
+			}
+			else if(current_token.equals("CLASS")) {
+				// If the token is CLASS they have forgotten a comma
+				throw new InvalidUMLException("Expecting `,` between part");
+			}
+			else if(current_token.equals(",")) {
+				// Loop again
+				continue;
+			}
+			else {
+				// If it is not a semicolon, not comma nor CLASS it means there is an error
+				throw new InvalidUMLException("Expecting closing `;` after aggregation");
+			}
+		}
+		
+		aggregation = new Aggregation(container, parts);
+		model.add_aggregation(aggregation);
+		
+		parse_declarations();
+	}
+	
+	/**
+	 * Generalization parser.
+	 * Generalization syntax:
+	 * "GENERALIZATION" IDENTIFIER "SUBCLASSES" subclasses;
+	 * @throws InvalidUMLException
+	 */
+	private void parse_generalization() throws InvalidUMLException {
+		Generalization generalization;
+		String name;
+		ArrayList<String> subclasses = new ArrayList<String>();
+		
+		// Validate name
+		read_token();
+		if(! valid_identifier(this.current_token)) throw new InvalidUMLException("Invalid GENERALIZATION IDENTIFIER");
+		name = this.current_token;
+		
+		// Check for `SUBCLASS` keyword
+		read_token();
+		if(! this.current_token.equals("SUBCLASSES")) throw new InvalidUMLException("Expecting `SUBCLASSES` after IDENTIFIER");
+		
+		// Loop to check for subclasses
+		while(true) {
+			// Check for valid identifier
+			read_token();
+			if(! valid_identifier(this.current_token)) throw new InvalidUMLException("Invalid subclass IDENTIFIER");
+			subclasses.add(this.current_token);
+			
+			
+			read_token();
+			if(this.current_token.equals(";")) {
+				// Break from loop because of closing semicolon
+				break;
+			}
+			else if(valid_identifier(this.current_token)) {
+				// Missing a comma
+				throw new InvalidUMLException("Expecting `,` between subclasses");
+			}
+			else if(this.current_token.equals(",")){
+				// Error
+				continue;
+			}
+			else {
+				throw new InvalidUMLException("Expecting closing `;` after generalization");
+			}	
+		}
+		
+		generalization = new Generalization(name, subclasses);
+		this.model.add_generalization(generalization);
+		
+		parse_declarations();
 	}
 	
 	private String peek_token() {
@@ -333,10 +486,10 @@ public class Parser {
 	
 	private void read_token() {
 		if(current_index == tokens.size() - 1) {
-			current_token = END;
+			this.current_token = END;
 		}
 		else {
-			current_token = tokens.get(++current_index);
+			this.current_token = tokens.get(++current_index);
 		}
 	}
 

@@ -18,18 +18,39 @@ public class Model {
 	}
 	
 	public String get_name() {
-		return name;
+		return this.name;
 	}
 
 	public ArrayList<Classe> get_classes() {
-		return classes;
+		return this.classes;
 	}
 	
 	public void add_classe(Classe c) {
-		classes.add(c);
+		this.classes.add(c);
 	}
 
 	public ArrayList<Association> get_associations() {
-		return associations;
+		return this.associations;
 	}
+
+	public void add_association(Association a) {
+		this.associations.add(a);
+	}
+
+	public ArrayList<Aggregation> get_aggregations() {
+		return aggregations;
+	}
+	
+	public void add_aggregation(Aggregation a) {
+		this.aggregations.add(a);
+	}
+	
+	public void add_generalization(Generalization g) {
+		this.generalizations.add(g);
+	}
+	
+	public ArrayList<Generalization> get_generalizations() {
+		return this.generalizations;
+	}
+	
 }

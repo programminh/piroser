@@ -19,8 +19,6 @@ public class Role {
 	 */
 	public Role(String name, String mul) throws InvalidUMLException{
 		// Validate multiplicity
-		if(multiplicity_is_valid(mul)) throw new InvalidUMLException("Invalid MULTIPLICITY");
-		
 		this.name = name;
 		this.multiplicity = mul;
 	}
@@ -30,7 +28,7 @@ public class Role {
 	 * @param mul
 	 * @return true if valid
 	 */
-	private boolean multiplicity_is_valid(String mul) {
+	public static boolean multiplicity_is_valid(String mul) {
 		for(String s : VALID_MULTIPLICITY) {
 			if(s.equals(mul)) return true;
 		}
