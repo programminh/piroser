@@ -1,5 +1,9 @@
 package org.umontreal.ift3913.piroser;
-
+/**
+ * Association Class
+ * @author Truong Pham
+ *
+ */
 public class Association {
 	private String name;
 	private Role first_role;

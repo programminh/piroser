@@ -2,7 +2,15 @@ package org.umontreal.ift3913.piroser;
 
 import java.util.ArrayList;
 /**
- * Parser
+ * Parser.
+ * This is where the magic happens. 
+ * Unicorn exists, chicken can fly, domestic animals are replaced by Pokemons,
+ * I'm the only male in my computer science classes (I secretly wish this one was true), 
+ * vampires don't shine, the Internet is still troll-free and cat-free. But, how is my
+ * parser magic? Well, it can tell whether YOU, yes YOU, the one who created that diagram,
+ * if you have done a great job or a poor job. If you did good it'll show you a fancy 
+ * GUI'ed representation of your badass UML-D. If you did wrong, oh boy, it'll spit out
+ * some nasty error message and look down upon you, until you correct your mistakes.
  * @author Truong Pham
  *
  */

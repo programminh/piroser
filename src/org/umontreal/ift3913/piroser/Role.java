@@ -1,5 +1,10 @@
 package org.umontreal.ift3913.piroser;
 
+/**
+ * Role Class
+ * @author Truong Pham
+ *
+ */
 public class Role {
 	private String name;
 	private String multiplicity;

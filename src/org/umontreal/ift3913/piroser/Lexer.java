@@ -9,8 +9,9 @@ import java.util.ArrayList;
 
 /**
  * Lexer Class
- * This class takes a file as an input and then build an array list 
- * of tokens.
+ * My Lexer is like a blind architect. Whether you give him garbage or a well structured sequences of characters,
+ * it will take what it gets and spit out a magnificent list of tokens. It doesn't discriminate, it doesn't fear
+ * the workload, it WILL build that list.
  * @author Truong Pham
  *
  */

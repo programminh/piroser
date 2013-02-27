@@ -6,20 +6,34 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
-
+/**
+ * Piroser
+ * UML Diagram Parser.
+ * @version 0.0.1
+ * @author Truong Pham
+ *
+ */
 public class Piroser extends JFrame {
 	private JButton btn_load_file;
 	private JButton btn_parse;
@@ -37,6 +51,9 @@ public class Piroser extends JFrame {
 	private JPanel panel_raw_details;
 	private JFileChooser file_chooser;
 	private File file;
+	private Lexer lexer;
+	private Parser parser;
+	private Model model;
 	
 	
 	public Piroser() {
@@ -56,7 +73,10 @@ public class Piroser extends JFrame {
 		
 		// Create Load File Button
 		btn_load_file = new JButton("Load file");
+		// Listen to button being pressed
+		btn_load_file.addActionListener(new LoadFileButtonHandler());
 		panel_header.add(btn_load_file);
+		
 		panel_header.setBorder(
 				BorderFactory.createCompoundBorder(
 						BorderFactory.createEmptyBorder(2,2,2,2),
@@ -70,6 +90,7 @@ public class Piroser extends JFrame {
 		
 		// Create Parse Button
 		btn_parse = new JButton("Parse");
+		btn_parse.addActionListener(new ParseFileButtonHandler());
 		panel_header.add(btn_parse);
 		
 		// Create File Chooser
@@ -77,8 +98,7 @@ public class Piroser extends JFrame {
 		// Show only files with .ucd extension
 		file_chooser.addChoosableFileFilter(new FileNameExtensionFilter("UML Diagrams", "ucd"));
 		
-		// Listen to button being pressed
-		btn_load_file.addActionListener(new LoadFileButtonHandler());
+		
 		
 		getContentPane().add(panel_header, BorderLayout.NORTH);
 		
@@ -89,6 +109,8 @@ public class Piroser extends JFrame {
 		
 		// Create Classes List
 		list_classes = new JList();
+		list_classes.addListSelectionListener(new ClassSelectionHandler());
+		list_classes.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		// Set the Classes' List to fill the panel and scroll if needed
 		panel_classes.setLayout(new BorderLayout());
@@ -115,6 +137,10 @@ public class Piroser extends JFrame {
 		panel_raw_details.add(new JScrollPane(textarea_details), BorderLayout.CENTER);
 		
 		// Adding square panels to the 2x2 layout
+		list_attributes = new JList();
+		list_methods = new JList();
+		list_subclasses = new JList();
+		list_assoc_aggre = new JList();
 		panel_components_container.add(new SquarePanel("Attributes", list_attributes));
 		panel_components_container.add(new SquarePanel("Methods", list_methods));
 		panel_components_container.add(new SquarePanel("Sub-Classes", list_subclasses));
@@ -139,8 +165,8 @@ public class Piroser extends JFrame {
 			// Adding a title
 			setBorder(BorderFactory.createTitledBorder(title));
 			
-			// Create the list
-			list = new JList();
+			// Single select mode only.
+			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			
 			// Set the list to fill the panel area and scroll if needed
 			setLayout(new BorderLayout());
@@ -161,6 +187,53 @@ public class Piroser extends JFrame {
 				text_file_path.setText(file.getAbsolutePath());
 			}
 		}
+	}
+	
+	/**
+	 * Event Handler for the parse button
+	 * @author Truong Pham
+	 *
+	 */
+	class ParseFileButtonHandler implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			String file_path = text_file_path.getText();
+			
+			// Load the file and tokenize it
+			file = new File(file_path);
+			lexer = new Lexer(file);
+			try {
+				// Parse the file and load the root model
+				parser = new Parser(lexer.get_tokens());
+				model = parser.get_model();
+				
+				// Update the classes JList with all the classes
+				list_classes.setListData(model.get_classes().toArray());
+			} 
+			catch (InvalidUMLException ex) {
+				
+				JOptionPane.showMessageDialog(Piroser.this, ex.getMessage(), "Parsing error", JOptionPane.ERROR_MESSAGE );
+			}
+			
+		}
+	}
+	
+	/**
+	 * Selection handler on the Classes JList
+	 * @author Truong Pham
+	 *
+	 */
+	class ClassSelectionHandler implements ListSelectionListener {
+
+		public void valueChanged(ListSelectionEvent e) {
+			// Select the index of the selected class
+			int index = list_classes.getSelectedIndex();
+			// Get all the classes
+			ArrayList<Classe> classes = model.get_classes();
+			// Update the attributes list with the selected class
+			list_attributes.setListData(classes.get(index).get_attributes().toArray());
+			list_methods.setListData(classes.get(index).get_operations().toArray());
+		}
+		
 	}
 	
 	public static void main(String[] args) throws IOException {
