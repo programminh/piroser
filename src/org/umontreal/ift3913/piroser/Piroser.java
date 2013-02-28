@@ -355,7 +355,7 @@ public class Piroser extends JFrame {
 			String selected_string, property_type, details;
 			clear_selection_except((JList) e.getSource());
 			
-			// Do nothing if notihng is selected
+			// Do nothing if nothing is selected
 			if(list.getSelectedIndex() == -1) return;
 			
 			// Get the selected string.
