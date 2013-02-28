@@ -1,6 +1,7 @@
 package org.umontreal.ift3913.piroser;
 
 import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -146,6 +148,15 @@ public class Piroser extends JFrame {
 		panel_components_container.add(new SquarePanel("Sub-Classes", list_subclasses));
 		panel_components_container.add(new SquarePanel("Associations/aggregations", list_assoc_aggre));
 		
+		// Adding Handlers to these new lists
+		list_attributes.addListSelectionListener(new AttributesSelectionHandler());
+		list_methods.addListSelectionListener(new MethodsSelectionHandler());
+		list_subclasses.addListSelectionListener(new SubclassesSelectionHandler());
+		list_assoc_aggre.addListSelectionListener(new AssocAggreSelectionHandler());
+		
+		
+		
+		
 		// Adding panels to the main container
 		panel_components.add(panel_components_container);
 		panel_components.add(panel_raw_details);
@@ -210,7 +221,6 @@ public class Piroser extends JFrame {
 				list_classes.setListData(model.get_classes().toArray());
 			} 
 			catch (InvalidUMLException ex) {
-				
 				JOptionPane.showMessageDialog(Piroser.this, ex.getMessage(), "Parsing error", JOptionPane.ERROR_MESSAGE );
 			}
 			
@@ -227,15 +237,296 @@ public class Piroser extends JFrame {
 		public void valueChanged(ListSelectionEvent e) {
 			// Select the index of the selected class
 			int index = list_classes.getSelectedIndex();
+			// Clear the details
+			textarea_details.setText("");
+			
 			// Get all the classes
-			ArrayList<Classe> classes = model.get_classes();
+			Classe selected_classe = model.get_classes().get(index);
+			ArrayList<String> subclasses = fetch_subclasses(selected_classe);
+			DefaultListModel assoc_aggre_list_model = fetch_assoc_aggre(selected_classe);
+			
 			// Update the attributes list with the selected class
-			list_attributes.setListData(classes.get(index).get_attributes().toArray());
-			list_methods.setListData(classes.get(index).get_operations().toArray());
+			list_attributes.setListData(selected_classe.get_attributes().toArray());
+			list_methods.setListData(selected_classe.get_operations().toArray());
+			list_subclasses.setListData(subclasses.toArray());
+			list_assoc_aggre.setModel(assoc_aggre_list_model);
+			
+			
+		}
+		
+		/**
+		 * This function loops through the list of generalizations and finds the one with it's name matching
+		 * the classe's name and fetches the subclasses.
+		 * @param c The class to look for subclass
+		 * @return List of the subclasses
+		 */
+		public ArrayList<String> fetch_subclasses(Classe c) {
+			ArrayList<String> subclasses = new ArrayList<String>();
+			ArrayList<Generalization> generalizations = model.get_generalizations();
+			String class_name = c.get_name();
+			
+			for(Generalization gen : generalizations) {
+				if(gen.get_name().endsWith(class_name)) {
+					return gen.get_subclasses();
+				}
+			}
+			return subclasses;
+		}
+		
+		/**
+		 * This function loops through the list of associations
+		 * and aggregations to find the class' and build's the model
+		 * @param c The class to look for subclass
+		 * @return List model of the associations and aggregations
+		 */
+		public DefaultListModel fetch_assoc_aggre(Classe c) {
+			ArrayList<Aggregation> aggregations = model.get_aggregations();
+			ArrayList<Association> associations = model.get_associations();
+			String class_name = c.get_name();
+			DefaultListModel list_model = new DefaultListModel();
+			
+			// Loop through the list of aggregation to find a container matching
+			// the class' name
+			for(Aggregation agg : aggregations) {
+				
+				// If found construct a string with the parts
+				if(agg.get_container().get_name().equals(class_name)) {
+					for(Role role : agg.get_parts()) {
+						list_model.addElement("(A) [P] "+role.get_name());
+					}
+				}
+				
+				// Loops through all the parts of the aggregations to 
+				// check if the class is a part.
+				for(Role role : agg.get_parts()) {
+					if(role.get_name().equals(class_name)) {
+						list_model.addElement("(A) [C] "+agg.get_container().get_name());
+					}
+				}
+			}
+			
+			// Loop through the associations to find the class
+			for(Association ass : associations) {
+				// First role, relation is normal
+				if(ass.get_first_role().get_name().equals(class_name)) {
+					list_model.addElement("(R) [N] "+ass.get_name());
+				}
+				
+				// Second role, relation is inversed
+				if(ass.get_second_role().get_name().equals(class_name)) {
+					list_model.addElement("(R) [I] "+ass.get_name());
+				}
+			}
+			
+			return list_model;
 		}
 		
 	}
 	
+	class AttributesSelectionHandler implements ListSelectionListener {
+
+		public void valueChanged(ListSelectionEvent e) {
+			clear_selection_except((JList) e.getSource());
+			textarea_details.setText("");
+		}	
+	}
+	
+	class SubclassesSelectionHandler implements ListSelectionListener {
+
+		public void valueChanged(ListSelectionEvent e) {
+			clear_selection_except((JList) e.getSource());
+			textarea_details.setText("");
+		}		
+	}
+	
+	class MethodsSelectionHandler implements ListSelectionListener {
+
+		public void valueChanged(ListSelectionEvent e) {
+			clear_selection_except((JList) e.getSource());
+			textarea_details.setText("");
+		}		
+	}
+	
+	class AssocAggreSelectionHandler implements ListSelectionListener {
+
+		public void valueChanged(ListSelectionEvent e) {
+			JList list = (JList) e.getSource();
+			ListModel list_model = list.getModel();
+			String selected_string, property_type, details;
+			clear_selection_except((JList) e.getSource());
+			
+			// Do nothing if notihng is selected
+			if(list.getSelectedIndex() == -1) return;
+			
+			// Get the selected string.
+			// I cast String because I know the list_model contains only strings.
+			selected_string = (String) list_model.getElementAt(list.getSelectedIndex());
+			
+			// Since the template is always "("A|R") ["P|C|N|I"]" IDENTIFIER
+			// I can pull out the first "parameter" and pass the string to the proper
+			// function to build the detail string
+			property_type = selected_string.substring(1,2);
+			if(property_type.equals("A")) {
+				details = build_aggregation_details(selected_string);
+			}
+			else {
+				details = build_association_details(selected_string);
+			}
+			
+			textarea_details.setText(details);
+		}		
+		
+		/**
+		 * This function detects if the selected aggregation is a
+		 * container or a part and gives control to the proper 
+		 * function to build the details.
+		 * @param selected_string
+		 * @return The aggregation details
+		 */
+		private String build_aggregation_details(String selected_string) {
+			String type, identifier;
+			
+			// Select whether it is a container or a part
+			type = selected_string.substring(5,6);
+			
+			// Get the identifier
+			identifier = selected_string.substring(8);
+			
+			// If the type is C then it's a container else it's a part
+			if(type.equals("C")) return build_as_container(identifier);
+			else return build_as_part(identifier);
+			
+		}
+		
+		/**
+		 * This function builds the details of an aggregation
+		 * where the selected identifier is a container.
+		 * This assume the identifier is valid.
+		 * @param identifier
+		 * @return The aggregation details
+		 */
+		private String build_as_container(String identifier) {
+			ArrayList<Aggregation> aggregations = model.get_aggregations();
+			StringBuilder details = new StringBuilder();
+			Aggregation aggregation = null;
+			
+			// Find the proper aggregation
+			for(Aggregation agg : aggregations) {
+				if(agg.get_container().get_name().equals(identifier)) {
+					aggregation = agg;
+					break;
+				}
+			}
+			
+			details.append("AGGREGATION\n");
+			details.append("CONTAINER\n");
+			details.append("   CLASS "+aggregation.get_container().get_name()+" "+aggregation.get_container().get_multiplicity()+"\n");
+			details.append("PARTS\n");
+			
+			for(Role role : aggregation.get_parts()) {
+				details.append("   CLASS "+role.get_name()+" "+role.get_multiplicity()+"\n");
+			}
+			
+			return details.toString();
+		}
+		
+		/**
+		 * This function builds the details of an aggregation where the
+		 * selected identifier is a part
+		 * @param identifier
+		 * @return
+		 */
+		private String build_as_part(String identifier) {
+			ArrayList<Aggregation> aggregations = model.get_aggregations();
+			StringBuilder details = new StringBuilder();
+			Aggregation aggregation = null;
+			Role role = null;
+			
+			// Loop through the list of aggregation to loop through the parts
+			for(Aggregation agg : aggregations) {
+				
+				// Loops through all the parts of the aggregations to find the identifier
+				for(Role r : agg.get_parts()) {
+					if(r.get_name().equals(identifier)) {
+						role = r;
+						break;
+					}
+				}
+				
+				// If the role is not null it means we found the identifier 
+				// so this aggregation must be the one containing it.
+				if(role != null) {
+					aggregation = agg;
+					break;
+				}
+			}
+			
+			details.append("AGGREGATION\n");
+			details.append("CONTAINER\n");
+			details.append("   CLASS "+aggregation.get_container().get_name()+" "+aggregation.get_container().get_multiplicity()+"\n");
+			details.append("PARTS\n");
+			
+			for(Role r : aggregation.get_parts()) {
+				details.append("   CLASS "+r.get_name()+" "+r.get_multiplicity()+"\n");
+			}
+			
+			return details.toString();
+		}
+		
+		/**
+		 * This function finds the name of the relation and display its details;
+		 * @param selected_string The selected string
+		 * @return The association details
+		 */
+		private String build_association_details(String selected_string) {
+			String identifier;
+			ArrayList<Association> associations = model.get_associations();
+			Association association = null;
+			StringBuilder details = new StringBuilder();
+			
+			// Get the identifier
+			identifier = selected_string.substring(8);
+			
+			// Find the association name 
+			for(Association ass : associations) {
+				if(ass.get_name().equals(identifier)) {
+					association = ass;
+					break;
+				}
+				
+				
+			}
+			
+			// Build the string
+			details.append("RELATION ");
+			details.append(association.get_name());
+			details.append("\n");
+			details.append("   ROLES\n");
+			details.append("   CLASS "+association.get_first_role().get_name()+" ");
+			details.append(association.get_first_role().get_multiplicity()+"\n");
+			details.append("   CLASS "+association.get_second_role().get_name()+" ");
+			details.append(association.get_second_role().get_multiplicity()+"\n");
+			
+			return details.toString();
+		}
+	}
+	
+	/**
+	 * Method to clear the selection of the class properties lists except the one passed as parameter.
+	 * @param exception_list The exception
+	 */
+	private void clear_selection_except(JList exception_list) {
+		if (! list_attributes.equals(exception_list)) list_attributes.clearSelection();
+		if (! list_methods.equals(exception_list)) list_methods.clearSelection();
+		if (! list_assoc_aggre.equals(exception_list)) list_assoc_aggre.clearSelection();
+		if (! list_subclasses.equals(exception_list)) list_subclasses.clearSelection();
+	}
+	
+	/**
+	 * Main executable
+	 * @param args Program args
+	 * @throws IOException
+	 */
 	public static void main(String[] args) throws IOException {
 		 SwingUtilities.invokeLater(new Runnable() {
 	            public void run() {
