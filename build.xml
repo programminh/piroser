@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!-- 
+Fichier Ant pour le TP #1 de IFT3913 basé sur 
+celui de Bruno Dufour pour le cours IFT3912.
+
+Author: Truong Pham
+-->
+
+<project default="compile">
+  <!-- Dossier qui contient le code source (.java) -->
+  <property name="src.dir"     value="src"/>
+  <!-- Dossier qui contiendra le code compilé (.class) -->
+  <property name="classes.dir" value="bin"/>
+  <!-- Dossier qui contient les bibliothèques à utiliser -->
+  <property name="lib.dir"     value="lib"/>
+
+  <path id="classpath">
+    <!-- Par défaut, le classpath contiendra tous les fichiers .jar dans le
+         dossier lib" -->
+    <fileset dir="${lib.dir}" includes="**/*.jar" erroronmissingdir="false"/>
+  </path>
+
+  <!-- compile: Compile le code source -->
+  <target name="compile">
+    <mkdir dir="${classes.dir}"/>
+    <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false" encoding="utf-8">
+      <classpath refid="classpath"/>
+    </javac>
+  </target>
+  
+  <!-- run: Execute le programme -->
+  <target name="run" depends="compile">
+    <java fork="true" classname="org.umontreal.ift3913.piroser.Piroser">
+      <classpath>
+        <path location="${classes.dir}"/>
+        <path refid="classpath"/>
+      </classpath>
+    </java>
+  </target>
+
+  <!-- test: Execute la suite de test -->
+  <target name="test" depends="compile">
+    <junit fork="yes" haltonfailure="yes">
+      <test name="org.umontreal.ift3913.piroser.tests.LexerTest" />
+      <formatter type="plain" usefile="false" />
+      <classpath>
+        <path location="${classes.dir}"/>
+        <path refid="classpath"/>
+      </classpath>
+    </junit>
+    <junit fork="yes" haltonfailure="yes">
+      <test name="org.umontreal.ift3913.piroser.tests.ParserTest" />
+      <formatter type="plain" usefile="false" />
+      <classpath>
+        <path location="${classes.dir}"/>
+        <path refid="classpath"/>
+      </classpath>
+    </junit>
+  </target>
+  
+ <!-- clean: Clean -->
+ <target name="clean">
+   <delete dir="${classes.dir}"/>
+ </target>
+
+</project>

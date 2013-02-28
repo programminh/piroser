@@ -361,7 +361,7 @@ public class Parser {
 	 * @return
 	 * @throws InvalidUMLException 
 	 */
-	public Role parse_role() throws InvalidUMLException {
+	private Role parse_role() throws InvalidUMLException {
 		String name, multiplicity;
 		
 		// Check for CLASS keyword

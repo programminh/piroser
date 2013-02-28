@@ -20,9 +20,8 @@ public class Role {
 	 * Validate the multiplicity and creates the object
 	 * @param name
 	 * @param mul
-	 * @throws InvalidUMLException
 	 */
-	public Role(String name, String mul) throws InvalidUMLException{
+	public Role(String name, String mul) {
 		// Validate multiplicity
 		this.name = name;
 		this.multiplicity = mul;

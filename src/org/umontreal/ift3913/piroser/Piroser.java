@@ -149,9 +149,9 @@ public class Piroser extends JFrame {
 		panel_components_container.add(new SquarePanel("Associations/aggregations", list_assoc_aggre));
 		
 		// Adding Handlers to these new lists
-		list_attributes.addListSelectionListener(new AttributesSelectionHandler());
-		list_methods.addListSelectionListener(new MethodsSelectionHandler());
-		list_subclasses.addListSelectionListener(new SubclassesSelectionHandler());
+		list_attributes.addListSelectionListener(new ComponentsSelectionHandler());
+		list_methods.addListSelectionListener(new ComponentsSelectionHandler());
+		list_subclasses.addListSelectionListener(new ComponentsSelectionHandler());
 		list_assoc_aggre.addListSelectionListener(new AssocAggreSelectionHandler());
 		
 		
@@ -323,28 +323,12 @@ public class Piroser extends JFrame {
 		
 	}
 	
-	class AttributesSelectionHandler implements ListSelectionListener {
+	class ComponentsSelectionHandler implements ListSelectionListener {
 
 		public void valueChanged(ListSelectionEvent e) {
 			clear_selection_except((JList) e.getSource());
 			textarea_details.setText("");
 		}	
-	}
-	
-	class SubclassesSelectionHandler implements ListSelectionListener {
-
-		public void valueChanged(ListSelectionEvent e) {
-			clear_selection_except((JList) e.getSource());
-			textarea_details.setText("");
-		}		
-	}
-	
-	class MethodsSelectionHandler implements ListSelectionListener {
-
-		public void valueChanged(ListSelectionEvent e) {
-			clear_selection_except((JList) e.getSource());
-			textarea_details.setText("");
-		}		
 	}
 	
 	class AssocAggreSelectionHandler implements ListSelectionListener {
