@@ -5,3 +5,5 @@ local.properties
 .classpath
 .settings/
 .DS_Store
+*.aux
+*.log
