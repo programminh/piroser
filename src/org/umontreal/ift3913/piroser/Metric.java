@@ -223,6 +223,11 @@ public class Metric {
 		return get_cac(classe);
 	}
 	
+	/**
+	 * Recursively get the CAC
+	 * @param c Class to count the CAC
+	 * @return CAC count
+	 */
 	private int get_cac(Classe c) {
 		int cac_count = 0;
 		
@@ -266,5 +271,135 @@ public class Metric {
 		}
 		
 		return cac_count;
+	}
+	
+	/**
+	 * Count the Depth in Tree
+	 * @return DIT Count
+	 */
+	public int get_dit() {
+		return get_dit(classe);
+	}
+	
+	/**
+	 * Recursively get the Depth in Tree
+	 * @param c
+	 * @return DIT Count
+	 */
+	private int get_dit(Classe c) {
+		int max = 0;
+		ArrayList<Classe> parents = find_parents(c);
+		
+		if(parents.size() == 0) return 0;
+		
+		if(parents.size() == 1) return 1 + get_dit(parents.get(0));
+		
+		// Loop through all the parents to get the maximum DiT
+		for(Classe cl : parents) {
+			if (max < get_dit(cl)) {
+				max = get_dit(cl);
+			}
+		}
+		
+		return 1 + max;
+		
+	}
+	
+	/**
+	 * Get a list of the parents
+	 * @param c Class to the find the parents
+	 * @return A list with all the class' parent
+	 */
+	private ArrayList<Classe> find_parents(Classe c) {
+		ArrayList<Classe> classes = new ArrayList<Classe>();
+		
+		// Loop through the generalization to find the parent
+		for(Generalization gen : model.get_generalizations()) {
+			if(gen.get_subclasses().contains(c.get_name())) {
+				// If a parent is found add it to the list of classes
+				classes.add(find_classe(gen.get_name()));
+			}
+		}
+		
+		return classes;
+	}
+	
+	/**
+	 * Get the number of child
+	 * @return Child count
+	 */
+	public int get_noc() {
+		return get_noc(classe);
+	}
+	
+	/**
+	 * Get the number of child of the specified class
+	 * @param c The class
+	 * @return Child count
+	 */
+	private int get_noc(Classe c) {
+		int count = 0;
+		
+		for(Generalization gen : model.get_generalizations()) {
+			if(gen.get_name().equals(c.get_name())) {
+				count += gen.get_subclasses().size();
+			}
+		}
+		
+		return count;
+	}
+	
+	/**
+	 * Get the number of direct and indirect child
+	 * @return Child count
+	 */
+	public int get_nod() {
+		return get_nod(classe);
+	}
+	
+	/**
+	 * Recursively get the number of direct and indirect child of the specified class
+	 * @param c The class to count
+	 * @return Child count
+	 */
+	private int get_nod(Classe c) {
+		ArrayList<Classe> childs = find_childs(c);
+		int count = 0;
+		
+		if(childs.size() == 0) return 0;
+		
+		count += childs.size();
+		
+		for(Classe cl : childs) {
+			count += get_nod(cl);
+		}
+		
+		return count;
+		
+		
+		
+	}
+	
+	/**
+	 * Get a list of the childs
+	 * @param c Class to the find childs
+	 * @return A list with all the class' child
+	 */
+	private ArrayList<Classe> find_childs(Classe c) {
+		ArrayList<Classe> classes = new ArrayList<Classe>();
+		
+		// Loop through the generalization to find the parent
+		for(Generalization gen : model.get_generalizations()) {
+			if(gen.get_name().equals(c.get_name())) {
+				// If we have found the parent loop through the sub-classes and
+				// add them to the list of child
+				for(String name : gen.get_subclasses()) {
+					classes.add(find_classe(name));
+				}
+				
+			}
+		}
+		
+		return classes;
 	}
 }

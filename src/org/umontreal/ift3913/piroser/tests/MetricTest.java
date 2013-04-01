@@ -486,6 +486,158 @@ public class MetricTest {
 		metric = new Metric(model, "Equipe");
 		
 		assertEquals(8, metric.get_cac());
+	}
+	
+	@Test
+	public void test_dit_single_inheritance() {
+		Model model = new Model("TestModel");
+		Classe child = new Classe("Child"),
+				parent = new Classe("Parent"), 
+				p_parent = new Classe("ParentParent"),
+				p_p_parent = new Classe("ParentParentParent");
+		ArrayList<String> subs = new ArrayList<String>();
+		Metric metric;
 		
+		subs.add("Child");
+		model.add_generalization(new Generalization("Parent", subs));
+		
+		subs = new ArrayList<String>();
+		subs.add("Parent");
+		model.add_generalization(new Generalization("ParentParent", subs));
+		
+		subs = new ArrayList<String>();
+		subs.add("ParentParent");
+		model.add_generalization(new Generalization("ParentParentParent", subs));
+		
+		model.add_classe(child);
+		model.add_classe(parent);
+		model.add_classe(p_parent);
+		model.add_classe(p_p_parent);
+		
+		metric = new Metric(model, "Child");
+		assertEquals(3, metric.get_dit());
+		
+		metric = new Metric(model, "Parent");
+		assertEquals(2, metric.get_dit());
+		
+		metric = new Metric(model, "ParentParent");
+		assertEquals(1, metric.get_dit());
+		
+		metric = new Metric(model, "ParentParentParent");
+		assertEquals(0, metric.get_dit());
+	}
+	
+	@Test
+	public void test_dit_multiple_inheritance() {
+		Model model = new Model("TestModel");
+		Classe child = new Classe("Child"),
+				parent = new Classe("Parent"), 
+				p_parent = new Classe("ParentParent"),
+				parent_ = new Classe("Parent_"),
+				p_parent_ = new Classe("ParentParent_"),
+				p_p_parent_ = new Classe ("ParentParentParent_");
+		ArrayList<String> subs = new ArrayList<String>();
+		Metric metric;
+		
+		subs.add("Child");
+		model.add_generalization(new Generalization("Parent", subs));
+		model.add_generalization(new Generalization("Parent_", subs));
+		
+		subs = new ArrayList<String>();
+		subs.add("Parent");
+		model.add_generalization(new Generalization("ParentParent", subs));
+		
+		subs = new ArrayList<String>();
+		subs.add("Parent_");
+		model.add_generalization(new Generalization("ParentParent_", subs));
+		
+		subs = new ArrayList<String>();
+		subs.add("ParentParent_");
+		model.add_generalization(new Generalization("ParentParentParent_", subs));
+		
+		model.add_classe(child);
+		model.add_classe(parent);
+		model.add_classe(p_parent);
+		model.add_classe(parent_);
+		model.add_classe(p_parent_);
+		model.add_classe(p_p_parent_);
+		
+		metric = new Metric(model, "Child");
+		assertEquals(3, metric.get_dit());
+	}
+	
+	@Test
+	public void test_noc() {
+		Model model = new Model("TestModel");
+		Classe parent = new Classe("Parent"),
+				child1 = new Classe("Child1"),
+				child2 = new Classe("Child2"),
+				child3 = new Classe("Child3");
+		ArrayList<String> subs = new ArrayList<String>();
+		Metric metric;
+		
+		
+		model.add_classe(parent);
+		model.add_classe(child1);
+		model.add_classe(child2);
+		model.add_classe(child3);
+		
+		subs.add("Child1");
+		subs.add("Child2");
+		model.add_generalization(new Generalization("Parent", subs));
+		
+		metric = new Metric(model, "Parent");
+		assertEquals(2, metric.get_noc());
+		
+		subs = new ArrayList<String>();
+		subs.add("Child3");
+		model.add_generalization(new Generalization("Parent", subs));
+		
+		assertEquals(3, metric.get_noc());
+	}
+	
+	@Test
+	public void test_nod() {
+		Model model = new Model("TestModel");
+		Classe parent = new Classe("Parent"),
+				child1 = new Classe("Child1"),
+				childchild1_1 = new Classe("ChildChild1_1"),
+				childchildchild1_1 = new Classe("ChildChildChild1_1"),
+				child2 = new Classe("Child2"),
+				childchild2_1 = new Classe("ChildChild2_1"),
+				childchild2_2 = new Classe("ChildChild2_2"),
+				child3 = new Classe("Child3");
+		ArrayList<String> subs = new ArrayList<String>();
+		Metric metric;
+		model.add_classe(parent);
+		model.add_classe(child1);
+		model.add_classe(childchild1_1);
+		model.add_classe(childchildchild1_1);
+		model.add_classe(child2);
+		model.add_classe(childchild2_1);
+		model.add_classe(childchild2_2);
+		model.add_classe(child3);
+		
+		subs.add("Child1");
+		subs.add("Child2");
+		subs.add("Child3");
+		model.add_generalization(new Generalization("Parent", subs));
+		
+		subs = new ArrayList<String>();
+		subs.add("ChildChild1_1");
+		model.add_generalization(new Generalization("Child1", subs));
+		
+		subs = new ArrayList<String>();
+		subs.add("ChildChildChild1_1");
+		model.add_generalization(new Generalization("ChildChild1_1", subs));
+		
+		subs = new ArrayList<String>();
+		subs.add("ChildChild2_1");
+		subs.add("ChildChild2_2");
+		model.add_generalization(new Generalization("Child2", subs));
+		
+		metric = new Metric(model, "Parent");
+		
+		assertEquals(7, metric.get_nod());
 	}
 }
