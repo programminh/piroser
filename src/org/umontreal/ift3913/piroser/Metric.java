@@ -147,4 +147,124 @@ public class Metric {
 		
 		return null;
 	}
+	
+	/**
+	 * Get the number of arguments
+	 * @return Number of arguments
+	 */
+	public int get_noa() {
+		return get_noa(classe);
+	}
+	
+	/**
+	 * Recursive search for the number of arguments
+	 * @param c The class to search
+	 * @return Number of argument
+	 */
+	private int get_noa(Classe c) {
+		// Loop through the list of generalization to find if the class has a parent
+		for(Generalization gen : model.get_generalizations()) {
+			if(gen.get_subclasses().contains(c.get_name())) {
+				return c.get_attributes().size() + get_noa(find_classe(gen.get_name()));
+			}
+		}
+		
+		return c.get_attributes().size();
+	}
+	
+	/**
+	 * Get the internal coupling
+	 * @return Number of internal coupling
+	 */
+	public int get_itc() {
+		int itc_count = 0;
+		
+		for(Operation op : classe.get_operations()) {
+			
+			for(Argument arg : op.get_arguments()) {
+				if(find_classe(arg.get_type()) != null) {
+					itc_count++;
+				}
+			}
+		}
+		
+		return itc_count;
+	}
+	
+	/**
+	 * Get the external coupling
+	 * @return Number of external coupling
+	 */
+	public int get_etc() {
+		int etc_count = 0;
+		
+		for(Classe c : model.get_classes()) {
+			// Skip if it's the same class
+			if(c.get_name().equals(classe.get_name())) continue;
+			
+			for(Operation op : c.get_operations()) {
+				
+				for(Argument arg : op.get_arguments()) {
+					if(arg.get_type().equals(classe.get_name())) {
+						etc_count++;
+					}
+				}
+			}			
+		}
+		
+		return etc_count;
+	}
+	
+	/**
+	 * Get the CAC
+	 * @return CAC count
+	 */
+	public int get_cac() {
+		return get_cac(classe);
+	}
+	
+	private int get_cac(Classe c) {
+		int cac_count = 0;
+		
+		// Search Aggregation
+		for(Aggregation agg : model.get_aggregations()) {
+			
+			// Increment the count if it matches the container
+			if(agg.get_container().get_name().equals(c.get_name())) {
+				cac_count++;
+			}
+			else {
+				
+				// Else search in the parts
+				for(Role r : agg.get_parts()) {
+					
+					// If found in the parts increment the count and break the loop
+					// to save some time
+					if(r.get_name().equals(c.get_name())) {
+						cac_count++;
+						break;
+					}
+				}
+			}
+		}
+		
+		
+		// Search in the associations
+		for(Association ass : model.get_associations()) {
+			// If the first or the second role matches increment the count
+			if(ass.get_first_role().get_name().equals(c.get_name())
+					|| ass.get_second_role().get_name().equals(c.get_name())) {
+				cac_count++;
+			}
+		}
+		
+		// Search for a parent
+		for(Generalization gen : model.get_generalizations()) {
+			if(gen.get_subclasses().contains(c.get_name())) {
+				return cac_count + get_cac(find_classe(gen.get_name()));
+			}
+		}
+		
+		return cac_count;
+	}
 }

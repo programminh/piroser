@@ -232,4 +232,260 @@ public class MetricTest {
 		
 		assertEquals(5, metric.get_nom());
 	}
+	
+	@Test
+	public void test_noa_without_inheritance() {
+		Model model = new Model("TestModel");
+		Classe c = new Classe("Classe");
+		Metric metric;
+
+		c.add_attribute(new Attribute("attr1", "test"));
+		c.add_attribute(new Attribute("attr2", "test"));
+		model.add_classe(c);
+		
+		metric = new Metric(model, "Classe");
+		
+		assertEquals(2, metric.get_noa());	
+	}
+	
+	@Test
+	public void test_noa_with_inheritance() {
+		Model model = new Model("TestModel");
+		Classe c = new Classe("Classe");
+		Classe p_c = new Classe("ParentClasse");
+		ArrayList<String> subs = new ArrayList<String>();
+		Metric metric;
+
+		p_c.add_attribute(new Attribute("pattr1", "test"));
+		p_c.add_attribute(new Attribute("pattr2", "test"));
+		model.add_classe(p_c);
+		
+		c.add_attribute(new Attribute("attr1", "test"));
+		c.add_attribute(new Attribute("attr2", "test"));
+		model.add_classe(c);
+		
+		subs.add("Classe");
+		model.add_generalization(new Generalization("ParentClasse", subs));
+		
+		
+		metric = new Metric(model, "Classe");
+		
+		assertEquals(4, metric.get_noa());	
+	}
+	
+	@Test
+	public void test_noa_double_inheritance() {
+		Model model = new Model("TestModel");
+		Classe c = new Classe("Classe");
+		Classe p_c = new Classe("ParentClasse");
+		Classe p_p_c = new Classe("ParentParentClasse");
+		ArrayList<String> subs = new ArrayList<String>();
+		Metric metric;
+		
+		p_p_c.add_attribute(new Attribute("ppattr1", "test"));
+		p_p_c.add_attribute(new Attribute("ppattr2", "test"));
+		model.add_classe(p_p_c);
+
+		p_c.add_attribute(new Attribute("pattr1", "test"));
+		p_c.add_attribute(new Attribute("pattr2", "test"));
+		model.add_classe(p_c);
+		
+		c.add_attribute(new Attribute("attr1", "test"));
+		c.add_attribute(new Attribute("attr2", "test"));
+		model.add_classe(c);
+		
+		subs.add("Classe");
+		model.add_generalization(new Generalization("ParentClasse", subs));
+		
+		
+		subs = new ArrayList<String>();
+		subs.add("ParentClasse");
+		model.add_generalization(new Generalization("ParentParentClasse", subs));
+		
+		metric = new Metric(model, "Classe");
+		
+		assertEquals(6, metric.get_noa());	
+	}
+	
+	@Test
+	public void test_itc() {
+		Metric metric;
+		Model model = new Model("TestModel");
+		Classe cl_1 = new Classe("Class1");
+		Classe cl_2 = new Classe("Class2");
+		Classe cl_3 = new Classe("Class3");
+		ArrayList<Argument> args = new ArrayList<Argument>();
+		
+		// First method with two internal class
+		args.add(new Argument("arg1", "Class2"));
+		args.add(new Argument("arg2", "Test"));
+		args.add(new Argument("arg3", "Class3"));
+		cl_1.add_operation(new Operation("ops1", "void", args));
+		
+		// Second method no internal class
+		args = new ArrayList<Argument>();
+		args.add(new Argument("arg1", "Test"));
+		cl_1.add_operation(new Operation("ops2", "void", args));
+		
+		// Third method one internal argument
+		args = new ArrayList<Argument>();
+		args.add(new Argument("arg1", "Class2"));
+		cl_1.add_operation(new Operation("ops3", "void", args));
+		
+		model.add_classe(cl_1);
+		model.add_classe(cl_2);
+		model.add_classe(cl_3);
+		
+		metric = new Metric(model, "Class1");
+		
+		assertEquals(3, metric.get_itc());
+	}
+	
+	@Test
+	public void test_etc() {
+		Metric metric;
+		Model model = new Model("TestModel");
+		Classe cl_1 = new Classe("Class1");
+		Classe cl_2 = new Classe("Class2");
+		Classe cl_3 = new Classe("Class3");
+		ArrayList<Argument> args = new ArrayList<Argument>();
+		
+		// Other class #1
+		// First method has 2 times Class1
+		args.add(new Argument("arg1", "Class1"));
+		args.add(new Argument("arg2", "Class1"));
+		cl_2.add_operation(new Operation("op1", "void", args));
+		args.add(new Argument("arg3", "Test"));
+		// Second method has 2 times Class1 and 1 random argument
+		cl_2.add_operation(new Operation("op2", "void", args));
+		// Third method has no Class1 as argument
+		cl_2.add_operation(new Operation("op3", "void", new ArrayList<Argument>()));
+		
+		// Other class #2
+		// First method has 2 times Class1 and 1 random argument
+		cl_3.add_operation(new Operation("op1", "void", args));
+		// Second method has Class1 as arugment
+		cl_3.add_operation(new Operation("op2", "void", new ArrayList<Argument>()));
+		
+		model.add_classe(cl_1);
+		model.add_classe(cl_2);
+		model.add_classe(cl_3);
+		
+		metric = new Metric(model, "Class1");
+		
+		assertEquals(6, metric.get_etc());
+	}
+	
+	@Test 
+	public void test_cac_no_inheritance() {
+		Metric metric;
+		Model model = new Model("TestModel");
+		Classe ville = new Classe("Ville");
+		Classe equipe = new Classe("Equipe");
+		Classe joueur = new Classe("Joueur");
+		Classe proprio = new Classe("Proprio");
+		Aggregation agg;
+		Association ass;
+		ArrayList<Role> roles = new ArrayList<Role>();
+		
+		// Equipe is a container
+		roles.add(new Role("Joueur", "ONE_OR_MANY"));
+		agg = new Aggregation(new Role("Equipe", "ONE"), roles);
+		model.add_aggregation(agg);
+		
+		// Equipe is a part
+		roles = new ArrayList<Role>();
+		roles.add(new Role("Equipe", "ONE_OR_MANY"));
+		agg = new Aggregation(new Role("Ville", "ONE"), roles);
+		model.add_aggregation(agg);
+		
+		// Equipe is first role
+		ass = new Association("est_situe_a", new Role("Equipe", "MANY"), new Role("Ville", "ONE"));
+		model.add_association(ass);
+		
+		// Equipe is second role
+		ass = new Association("est_proprietaire_de", new Role("Proprio", "ONE"), new Role("Equipe", "MANY"));
+		model.add_association(ass);
+		
+		model.add_classe(proprio);
+		model.add_classe(joueur);
+		model.add_classe(equipe);
+		model.add_classe(ville);
+		
+		
+		metric = new Metric(model, "Equipe");
+		
+		assertEquals(4, metric.get_cac());
+	}
+	
+	@Test 
+	public void test_cac_no_inheritance_with_inheritance() {
+		Metric metric;
+		Model model = new Model("TestModel");
+		Classe continent = new Classe("Continent");
+		Classe pays = new Classe("Pays");
+		Classe ville = new Classe("Ville");
+		Classe equipe = new Classe("Equipe");
+		Classe joueur = new Classe("Joueur");
+		Classe proprio = new Classe("Proprio");
+		
+		Aggregation agg;
+		Association ass;
+		ArrayList<String> subs = new ArrayList<String>();
+		ArrayList<Role> roles = new ArrayList<Role>();
+		
+		// Equipe is a container
+		roles.add(new Role("Joueur", "ONE_OR_MANY"));
+		agg = new Aggregation(new Role("Equipe", "ONE"), roles);
+		model.add_aggregation(agg);
+		
+		// Equipe is a part
+		roles = new ArrayList<Role>();
+		roles.add(new Role("Equipe", "ONE_OR_MANY"));
+		agg = new Aggregation(new Role("Ville", "ONE"), roles);
+		model.add_aggregation(agg);
+		
+		// Equipe is first role
+		ass = new Association("est_situe_a", new Role("Equipe", "MANY"), new Role("Ville", "ONE"));
+		model.add_association(ass);
+		
+		// Equipe is second role
+		ass = new Association("est_proprietaire_de", new Role("Proprio", "ONE"), new Role("Equipe", "MANY"));
+		model.add_association(ass);
+		
+		// Pays container
+		roles = new ArrayList<Role>();
+		roles.add(new Role("Ville", "MANY"));
+		agg = new Aggregation(new Role("Pays", "ONE"), roles);
+		model.add_aggregation(agg);
+		
+		// Pays part
+		roles.add(new Role("Pays", "MANY"));
+		agg = new Aggregation(new Role("Continent", "ONE"), roles);
+		model.add_aggregation(agg);
+		
+		// Pays first role
+		ass = new Association("est_situe_a", new Role("Pays", "MANY"), new Role("Continent", "ONE"));
+		model.add_association(ass);
+		
+		// Pays second role
+		ass = new Association("controle", new Role("Proprio", "ONE_OR_MANY"), new Role("Pays", "ONE_OR_MANY"));
+		model.add_association(ass);
+		
+		subs.add("Equipe");
+		// Add the inheritance
+		model.add_generalization(new Generalization("Pays", subs));
+		
+		model.add_classe(continent);
+		model.add_classe(pays);
+		model.add_classe(proprio);
+		model.add_classe(joueur);
+		model.add_classe(equipe);
+		model.add_classe(ville);
+		
+		metric = new Metric(model, "Equipe");
+		
+		assertEquals(8, metric.get_cac());
+		
+	}
 }
