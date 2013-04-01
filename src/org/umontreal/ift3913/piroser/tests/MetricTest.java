@@ -597,7 +597,7 @@ public class MetricTest {
 	}
 	
 	@Test
-	public void test_nod() {
+	public void test_nod_and_cld() {
 		Model model = new Model("TestModel");
 		Classe parent = new Classe("Parent"),
 				child1 = new Classe("Child1"),
@@ -639,5 +639,7 @@ public class MetricTest {
 		metric = new Metric(model, "Parent");
 		
 		assertEquals(7, metric.get_nod());
+		assertEquals(3, metric.get_cld());
 	}
+	
 }

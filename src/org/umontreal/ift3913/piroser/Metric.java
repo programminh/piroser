@@ -292,8 +292,6 @@ public class Metric {
 		
 		if(parents.size() == 0) return 0;
 		
-		if(parents.size() == 1) return 1 + get_dit(parents.get(0));
-		
 		// Loop through all the parents to get the maximum DiT
 		for(Classe cl : parents) {
 			if (max < get_dit(cl)) {
@@ -401,5 +399,33 @@ public class Metric {
 		}
 		
 		return classes;
+	}
+	
+	/**
+	 * Class-to-leaf Depth
+	 * @return CLD Count
+	 */
+	public int get_cld() {
+		return get_cld(classe);
+	}
+	
+	/**
+	 * Class-to-leaf Depth of the specified class
+	 * @param c Class to count
+	 * @return CLD Count
+	 */
+	private int get_cld(Classe c) {
+		ArrayList<Classe> childs = find_childs(c);
+		int max = 0;
+		
+		if(childs.size() == 0) return 0;
+		
+		for(Classe cl : childs) {
+			if(max < get_cld(cl)) {
+				max = get_cld(cl);
+			}
+		}
+		
+		return 1 + max;
 	}
 }

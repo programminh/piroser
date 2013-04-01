@@ -65,7 +65,7 @@ public class Piroser extends JFrame {
 	private void init() {
 		// Window Properties
 		setTitle("Piroser 0.0.1");
-		setSize(700,700);
+		setSize(900,700);
 		setResizable(false);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
