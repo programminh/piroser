@@ -22,7 +22,7 @@ La deuxième itération de PIROser consiste à ajouter une fonctionalité permet
 
 \section{Conception}
 
-L'extension de PIROser se consiste entièrement de la nouvelle classe \texttt{Metric}. La modularité de la première version de l'application m'a permise de rajouter des fonctions sans toucher aux anciennes composantes. Grâce à cela, j'ai pu étendre le logiciel sans avoir peur de ``brisé'' ce qui a été fait auparavant et, en plus, mon temps de développement a été raccourci car je n'ai pas eut à travailler sur mon ancien code.
+L'extension de PIROser se consiste entièrement de la nouvelle classe \texttt{Metric}. La modularité de la première version de l'application m'a permise de rajouter des fonctions sans toucher aux anciennes composantes. Grâce à cela, j'ai pu étendre le logiciel sans avoir peur de ``briser'' ce qui a été fait auparavant et, en plus, mon temps de développement a été raccourci car je n'ai pas eut à travailler sur mon ancien code.
 
 Afin d'initialiser le calcul des métriques, il faut créer un nouvel objet \texttt{Metric} et passer comme arguments le \texttt{Model} déjà parsé ainsi que le nom de la \texttt{Classe} que l'on veut ``questionner''. Tous les calculs des différentes métriques sont définis par les fonctions portant leurs acronymes respectifs. Par exemple, \texttt{get\_ana()} calculera le \texttt{Average Number of Arguments}. Ces calculs sont exécutés à chaque fois que l'on sélectionne une \texttt{Classe}.
 
@@ -80,5 +80,4 @@ La génération du CSV se fait en cliquant sur le bouton \texttt{Save metrics to
 \includegraphics[width=\textwidth]{save.jpg}
 \caption{\label{fig:save}Sauvegarde du fichier CSV}
 \end{figure}
-
 \end{document}
