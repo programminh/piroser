@@ -3,11 +3,14 @@ package org.umontreal.ift3913.piroser;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FileDialog;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,6 +18,7 @@ import java.util.Arrays;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -28,11 +32,12 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 /**
  * Piroser
  * UML Diagram Parser.
- * @version 0.0.1
+ * @version 0.0.2
  * @author Truong Pham
  *
  */
@@ -53,6 +58,7 @@ public class Piroser extends JFrame {
 	private JPanel panel_components_container;
 	private JPanel panel_raw_details;
 	private JFileChooser file_chooser;
+	private JFileChooser file_chooser_save;
 	private File file;
 	private Lexer lexer;
 	private Parser parser;
@@ -67,7 +73,7 @@ public class Piroser extends JFrame {
 	
 	private void init() {
 		// Window Properties
-		setTitle("Piroser 0.0.1");
+		setTitle("Piroser 0.2.0");
 		setSize(900,700);
 		setResizable(false);
 		setLocationRelativeTo(null);
@@ -107,7 +113,9 @@ public class Piroser extends JFrame {
 		// Show only files with .ucd extension
 		file_chooser.addChoosableFileFilter(new FileNameExtensionFilter("UML Diagrams", "ucd"));
 		
-		
+		// Create file dialog
+		file_chooser_save = new JFileChooser(".");
+		file_chooser_save.addChoosableFileFilter(new FileNameExtensionFilter("Comma Separaved Values (.csv)", "csv"));
 		
 		getContentPane().add(panel_header, BorderLayout.NORTH);
 		// Create the metric panel
@@ -234,8 +242,22 @@ public class Piroser extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			String file_path = text_file_path.getText();
 			
+			
 			// Load the file and tokenize it
 			file = new File(file_path);
+			
+			if(file_path.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "No file has been selected.", "File error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			
+			if(! file.exists()) {
+				JOptionPane.showMessageDialog(null, "The file does no exists.", "File error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			
+			
+			
 			lexer = new Lexer(file);
 			try {
 				// Parse the file and load the root model
@@ -259,11 +281,78 @@ public class Piroser extends JFrame {
 	 */
 	class SaveCSVButtonHandler implements ActionListener {
 
-		public void actionPerformed(ActionEvent arg0) {
-			// TODO Auto-generated method stub
+		public void actionPerformed(ActionEvent e) {
+			String file_path;
+			File f;
+			BufferedWriter bw;
 			
+			int return_value = file_chooser_save.showSaveDialog(null);
+			if(model == null) {
+				JOptionPane.showMessageDialog(null,
+					    "Nothing has been parsed yet!",
+					    "Error",
+					    JOptionPane.ERROR_MESSAGE);
+				
+				return;
+			}
+			if(return_value == JFileChooser.APPROVE_OPTION) {
+				
+				file_path = file_chooser_save.getSelectedFile().getAbsolutePath();
+				
+				// Appends .csv if there is no extension
+				if(! file_path.endsWith(".csv")) {
+					file_path += ".csv";
+				}
+				
+				try {
+					f = new File(file_path);
+					
+					if(! f.exists()) {
+							f.createNewFile();
+					}
+					
+					
+					
+					bw = new BufferedWriter(new FileWriter(f));
+					bw.write(get_csv_file());
+					bw.close();
+					
+					JOptionPane.showMessageDialog(null,
+							"CSV file generated!");
+					
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
 		}
 		
+	}
+	
+	private String get_csv_file() {
+		StringBuilder sb = new StringBuilder();
+		Metric metric;
+		
+		// Build the columns name
+		sb.append("Class name,ANA,NOM,NOA,ITC,ETC,CAC,DIT,CLD,NOC,NOD");
+		sb.append("\n");
+		for(Classe c : model.get_classes()) {
+			metric = new Metric(model, c.get_name());
+			sb.append(c.get_name()+",");
+			sb.append(String.format("%.2f,", metric.get_ana()));
+			sb.append(metric.get_nom()+",");
+			sb.append(metric.get_noa()+",");
+			sb.append(metric.get_itc()+",");
+			sb.append(metric.get_etc()+",");
+			sb.append(metric.get_cac()+",");
+			sb.append(metric.get_dit()+",");
+			sb.append(metric.get_cld()+",");
+			sb.append(metric.get_noc()+",");
+			sb.append(metric.get_nod());
+			sb.append("\n");	
+		}
+		
+		return sb.toString();
 	}
 	
 	/**
