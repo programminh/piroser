@@ -39,6 +39,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class Piroser extends JFrame {
 	private JButton btn_load_file;
 	private JButton btn_parse;
+	private JButton btn_save_csv;
 	private JTextField text_file_path;
 	private JTextArea textarea_details;
 	private JList list_classes;
@@ -56,6 +57,8 @@ public class Piroser extends JFrame {
 	private Lexer lexer;
 	private Parser parser;
 	private Model model;
+	private JPanel panel_metrics;
+	private JList list_metrics;
 	
 	
 	public Piroser() {
@@ -95,6 +98,10 @@ public class Piroser extends JFrame {
 		btn_parse.addActionListener(new ParseFileButtonHandler());
 		panel_header.add(btn_parse);
 		
+		btn_save_csv = new JButton("Save metrics to CSV");
+		btn_save_csv.addActionListener(new SaveCSVButtonHandler());
+		panel_header.add(btn_save_csv);
+		
 		// Create File Chooser
 		file_chooser = new JFileChooser(".");
 		// Show only files with .ucd extension
@@ -103,6 +110,23 @@ public class Piroser extends JFrame {
 		
 		
 		getContentPane().add(panel_header, BorderLayout.NORTH);
+		// Create the metric panel
+		panel_metrics = new JPanel();
+		panel_metrics.setBorder(BorderFactory.createTitledBorder("Metrics"));
+		panel_metrics.setPreferredSize(new Dimension(230,0));
+		
+		// Create metric List
+		list_metrics = new JList();
+		list_metrics.addListSelectionListener(new MetricSelectionHandler());
+		list_metrics.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
+		// Set the metric's List to fill the panel and scroll if needed
+		panel_metrics.setLayout(new BorderLayout());
+		panel_metrics.add(new JScrollPane(list_metrics), BorderLayout.CENTER);
+				
+		// Add Class Panel to the Frame
+		getContentPane().add(panel_metrics, BorderLayout.EAST);
+		
 		
 		// Create classes panel
 		panel_classes = new JPanel();
@@ -134,6 +158,7 @@ public class Piroser extends JFrame {
 		// Create Text Area
 		textarea_details = new JTextArea();
 		textarea_details.setEditable(false);
+		textarea_details.setLineWrap(true);
 		// Set Text Area to fill the panel and adding scroll.
 		panel_raw_details.setLayout(new BorderLayout());
 		panel_raw_details.add(new JScrollPane(textarea_details), BorderLayout.CENTER);
@@ -228,6 +253,40 @@ public class Piroser extends JFrame {
 	}
 	
 	/**
+	 * Event handler for the Save metrics to CSV button
+	 * @author Truong Pham
+	 *
+	 */
+	class SaveCSVButtonHandler implements ActionListener {
+
+		public void actionPerformed(ActionEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
+	
+	/**
+	 * Event Handler for the Metric Selection
+	 * @author Truong Pham
+	 *
+	 */
+	class MetricSelectionHandler implements ListSelectionListener {
+
+
+		public void valueChanged(ListSelectionEvent e) {
+			int index = list_metrics.getSelectedIndex();
+			clear_selection_except((JList) e.getSource());
+			if(index >= 0) {
+				textarea_details.setText(Metric.DEFINITIONS[index]);
+			}
+			
+		}
+		
+	}
+	
+	
+	/**
 	 * Selection handler on the Classes JList
 	 * @author Truong Pham
 	 *
@@ -235,8 +294,11 @@ public class Piroser extends JFrame {
 	class ClassSelectionHandler implements ListSelectionListener {
 
 		public void valueChanged(ListSelectionEvent e) {
+			Metric metric;
+			
 			// Select the index of the selected class
 			int index = list_classes.getSelectedIndex();
+			
 			// Clear the details
 			textarea_details.setText("");
 			
@@ -244,14 +306,38 @@ public class Piroser extends JFrame {
 			Classe selected_classe = model.get_classes().get(index);
 			ArrayList<String> subclasses = fetch_subclasses(selected_classe);
 			DefaultListModel assoc_aggre_list_model = fetch_assoc_aggre(selected_classe);
+			metric = new Metric(model, selected_classe.get_name());
 			
 			// Update the attributes list with the selected class
 			list_attributes.setListData(selected_classe.get_attributes().toArray());
 			list_methods.setListData(selected_classe.get_operations().toArray());
 			list_subclasses.setListData(subclasses.toArray());
 			list_assoc_aggre.setModel(assoc_aggre_list_model);
+			list_metrics.setListData(get_metrics(metric).toArray());
+		}
+		
+		/**
+		 * Returns an array with all the metrics to populate the 
+		 * metric' JList
+		 * @param m The metric
+		 * @return And array of metrics
+		 */
+		public ArrayList<String> get_metrics(Metric m) {
+			ArrayList<String> metrics = new ArrayList<String>();
 			
 			
+			metrics.add("ANA: "+String.format("%.2f", m.get_ana()));
+			metrics.add("NOM: "+m.get_nom());
+			metrics.add("NOA: "+m.get_noa());
+			metrics.add("ITC: "+m.get_itc());
+			metrics.add("ETC: "+m.get_etc());
+			metrics.add("CAC: "+m.get_cac());
+			metrics.add("DIT: "+m.get_dit());
+			metrics.add("CLD: "+m.get_cld());
+			metrics.add("NOC: "+m.get_noc());
+			metrics.add("NOD: "+m.get_nod());
+			
+			return metrics;
 		}
 		
 		/**
@@ -504,6 +590,7 @@ public class Piroser extends JFrame {
 		if (! list_methods.equals(exception_list)) list_methods.clearSelection();
 		if (! list_assoc_aggre.equals(exception_list)) list_assoc_aggre.clearSelection();
 		if (! list_subclasses.equals(exception_list)) list_subclasses.clearSelection();
+		if (! list_metrics.equals(exception_list)) list_metrics.clearSelection();
 	}
 	
 	/**

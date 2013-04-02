@@ -6,6 +6,18 @@ import java.util.Iterator;
 public class Metric {
 	private Classe classe;
 	private Model model;
+	public static final String[] DEFINITIONS = {
+		"Nombre moyen d'arguments des méthodes locales de la classe sélectionée.",
+		"Nombre de méthodes locales/héritées de la classe sélectionée. Dans le cas où une méthode héritée est redéfinie localement, elle ne compte qu'une fois.",
+		"Nombre d'attributs locaux/héritées de la classe sélectionée.",
+		"Nombre de fois où d'autres classes du diagramme apparaissent comme types des arguments des méthodes de la classe sélectionée.",
+		"Nombre de fois où la classe sélectionnée apparaît comme type des arguments dans les méthodes des autres classes du diagramme.",
+		"Nombre d'associations (incluant les agrégations) locales/héritées auxquelles participe la classe sélectionée.",
+		"Taille du chemin le plus long reliant la classe sélectionée à une classe racine dans le graphe d'héritage.",
+		"Taille du chemin le plus long reliant la classe sélectionée à une classe feuille dans le graphe d'héritage.",
+		"Nombre de sous-classes directes.",
+		"Nombre de sous-classes directes et indirectes."
+	};
 	
 	/**
 	 * Constructor
@@ -13,7 +25,6 @@ public class Metric {
 	 * @param The class' name
 	 */
 	public Metric(Model m, String c) {
-		
 		// Loop through the models to get the class
 		for(Classe cl : m.get_classes()) {
 			if(cl.get_name().equals(c)) {
@@ -32,6 +43,8 @@ public class Metric {
 		int methods_count, arguments_count = 0;
 		
 		methods_count = classe.get_operations().size();
+		
+		if(methods_count == 0) return 0;
 		
 		for(Operation op : classe.get_operations()) {
 			arguments_count += op.get_arguments().size();
