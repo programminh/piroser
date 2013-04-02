@@ -57,6 +57,14 @@ Author: Truong Pham
         <path refid="classpath"/>
       </classpath>
     </junit>
+    <junit fork="yes" haltonfailure="yes">
+      <test name="org.umontreal.ift3913.piroser.tests.MetricTest" />
+      <formatter type="plain" usefile="false" />
+      <classpath>
+        <path location="${classes.dir}"/>
+        <path refid="classpath"/>
+      </classpath>
+    </junit>
   </target>
   
  <!-- clean: Clean -->
